@@ -1,0 +1,46 @@
+<!-- templates/upload.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Diplome</title>
+</head>
+<body>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <label for="fileInput">Choisir un fichier à uploader :</label>
+        <input type="file" name="file" id="fileInput" required title="Sélectionnez un fichier à uploader">
+        <button type="submit">Envoyer</button>
+    </form>
+    <p id="result"></p>
+
+    <script>
+    const form = document.getElementById('uploadForm');
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const file = document.getElementById('fileInput').files[0];
+        if (!file) return alert("Veuillez choisir un fichier.");
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const response = await fetch('/api/upload/', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            if (response.ok) {
+                document.getElementById('result').textContent = 
+                    `✅ Fichier uploadé\nHash: ${result.hash}\nTx ID: ${result.tx_id}\nStatus: ${result.status}`;
+            } else {
+                document.getElementById('result').textContent = `❌ Erreur: ${result.error}`;
+            }
+        } catch (err) {
+            document.getElementById('result').textContent = `❌ Erreur réseau: ${err.message}`;
+        }
+    });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vérifier un diplôme</title>
+</head>
+<body>
+    <form id="verifierForm">
+        <label for="pdfFile">Choisir le PDF :</label>
+        <input type="file" id="pdfFile" required>
+        <button type="submit">Vérifier</button>
+    </form>
+    <p id="result"></p>
+
+    <script>
+    const form = document.getElementById('verifierForm');
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const file = document.getElementById('pdfFile').files[0];
+        if (!file) return;
+
+        const arrayBuffer = await file.arrayBuffer();
+        const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+        const hashHex = Array.from(new Uint8Array(hashBuffer))
+                            .map(b => b.toString(16).padStart(2, '0'))
+                            .join('');
+
+        try {
+            const response = await fetch(`/api/verifier/?hash=${hashHex}`);
+            const data = await response.json();
+            if (data.valid) {
+                document.getElementById('result').textContent = "✅ Diplôme valide";
+            } else {
+                document.getElementById('result').textContent = "❌ Diplôme non trouvé";
+            }
+        } catch (err) {
+            document.getElementById('result').textContent = `❌ Erreur: ${err.message}`;
+        }
+    });
+    </script>
+
+</body>
+</html>
